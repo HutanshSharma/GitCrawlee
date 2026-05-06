@@ -1,5 +1,3 @@
-import shutil
-
 from fastapi import APIRouter
 
 from crawlers.main import scrapper
@@ -115,7 +113,6 @@ def search_language(lang: str) -> list[RepoListItem]:
 @router.get("/repo-structure/{username}/{repo}", response_model=RepoStructureResponse)
 def repo_structure(username: str, repo: str) -> RepoStructureResponse:
     data = get_repo_structure(username,repo)
-    shutil.rmtree('repo_temp', ignore_errors=True)
     return data
 
 

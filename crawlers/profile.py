@@ -1,4 +1,10 @@
-from .utils import parse_number, parse_date, safe_get_attr, safe_get_text
+from .utils import (
+    find_section_by_heading_with_listitem,
+    parse_number,
+    parse_date,
+    safe_get_attr,
+    safe_get_text,
+)
 
 def extract(soup):
     data = {}
@@ -21,10 +27,17 @@ def extract(soup):
             following = safe_get_text(followinganchor.select_one("span"))
             data['following'] = following
 
-    repos = soup.find("ul", {
-        "data-filterable-for": "your-repos-filter",
-        "data-filterable-type": "substring"
-    })
+    repos = soup.find(
+        "ul",
+        {
+            "data-filterable-for": "your-repos-filter",
+            "data-filterable-type": "substring",
+        },
+    )
+    if not repos:
+        repos = find_section_by_heading_with_listitem(
+            soup, ["Repositories", "Popular repositories"]
+        )
 
     if repos:
         repo_items = repos.find_all('li')

@@ -1,4 +1,9 @@
-from .utils import parse_number, safe_get_text
+from .utils import (
+    find_section_by_heading,
+    parse_number,
+    text_by_labels,
+    text_by_selectors,
+)
 
 
 def extract(soup):
@@ -7,13 +12,25 @@ def extract(soup):
         "closed":0
     }
 
-    div = soup.find('div',class_="ListItems-module__listContainer--sgptj")
-    if div:
-        anchor = div.find_all("a",href=lambda href: href and '/issues' in href)
-        if anchor:
-            open_text = safe_get_text(anchor[0].select_one('span'))
-            closed_text = safe_get_text(anchor[1].select_one('span'))
-            issues['open'] = int(parse_number(open_text))
-            issues['closed'] = int(parse_number(closed_text))
+    issues_section = find_section_by_heading(soup, ["Issues"])
+    search_root = issues_section if issues_section else soup
+    open_text = text_by_selectors(
+        search_root,
+        [
+            "a[href*='/issues'] span",
+            "a[href*='/issues'] strong",
+        ],
+    ) or text_by_labels(search_root, ["Open"])
+    closed_text = text_by_selectors(
+        search_root,
+        [
+            "a[href*='/issues'] span",
+            "a[href*='/issues'] strong",
+        ],
+    ) or text_by_labels(search_root, ["Closed"])
+    if open_text:
+        issues['open'] = int(parse_number(open_text))
+    if closed_text:
+        issues['closed'] = int(parse_number(closed_text))
 
     return issues

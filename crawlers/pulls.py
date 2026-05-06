@@ -1,5 +1,9 @@
-from .utils import parse_number, safe_get_text
-
+from .utils import (
+    find_section_by_heading,
+    parse_number,
+    text_by_labels,
+    text_by_selectors,
+)
 
 def extract(soup):
     pulls = {
@@ -8,22 +12,45 @@ def extract(soup):
         "milestones":0,
         "labels":0
     }
-    div = soup.find('div',id="js-issues-toolbar")
-    if div:
-        anchor = div.find_all("a",href=lambda href: href and '/pulls' in href)
-        if anchor:
-            open_text = safe_get_text(anchor[0])
-            closed_text = safe_get_text(anchor[1])
-            pulls['open'] = int(parse_number(open_text.split(' ')[0] if open_text else ""))
-            pulls['closed'] = int(parse_number(closed_text.split(' ')[0] if closed_text else ""))
+    pulls_section = find_section_by_heading(soup, ["Pull requests", "Pulls"])
+    search_root = pulls_section if pulls_section else soup
+    open_text = text_by_selectors(
+        search_root,
+        [
+            "a[href*='/pulls'] span",
+            "a[href*='/pulls'] strong",
+        ],
+    ) or text_by_labels(search_root, ["Open"])
+    closed_text = text_by_selectors(
+        search_root,
+        [
+            "a[href*='/pulls'] span",
+            "a[href*='/pulls'] strong",
+        ],
+    ) or text_by_labels(search_root, ["Closed"])
+    if open_text:
+        pulls['open'] = int(parse_number(open_text.split(' ')[0] if open_text else ""))
+    if closed_text:
+        pulls['closed'] = int(parse_number(closed_text.split(' ')[0] if closed_text else ""))
 
-    milestones = soup.find('a',href=lambda href: href and '/milestones' in href)
-    if milestones:
-        milestones_number = safe_get_text(milestones.select_one('span'))
+    milestones_number = text_by_selectors(
+        search_root,
+        [
+            "a[href*='/milestones'] span",
+            "a[href*='/milestones'] strong",
+        ],
+    ) or text_by_labels(search_root, ["Milestones"])
+    if milestones_number:
         pulls['milestones'] = int(parse_number(milestones_number))
-    labels = soup.find('a',href=lambda href: href and '/labels' in href)
-    if labels:
-        labels_number = safe_get_text(labels.select_one('span'))
+
+    labels_number = text_by_selectors(
+        search_root,
+        [
+            "a[href*='/labels'] span",
+            "a[href*='/labels'] strong",
+        ],
+    ) or text_by_labels(search_root, ["Labels"])
+    if labels_number:
         pulls['labels'] = int(parse_number(labels_number))
     
     return pulls

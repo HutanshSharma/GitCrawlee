@@ -1,4 +1,4 @@
-from .utils import parse_number, safe_get_text
+from .utils import find_section_by_heading, parse_number, safe_get_text
 
 def extract(soup):
     data = {
@@ -29,7 +29,10 @@ def extract(soup):
         "active_discussions":0
     }
 
-    p = soup.find("div",class_="js-pulse-contribution-data")
+    pulse_section = find_section_by_heading(soup, ["Pulse", "Contributions"])
+    search_root = pulse_section if pulse_section else soup
+
+    p = search_root.find("div",class_="js-pulse-contribution-data")
     if p:
         strongs = p.find_all("strong")
         strong_data = list()
@@ -48,7 +51,7 @@ def extract(soup):
             }
             data['merges_data'] = merges_data
 
-    merged_pull_requests = soup.find("h3",id="merged-pull-requests")
+    merged_pull_requests = search_root.find("h3",id="merged-pull-requests")
     if merged_pull_requests:
         mpr_span = merged_pull_requests.find("span")
         mpr_inner_spans = mpr_span.find_all('span') if mpr_span else []
@@ -59,7 +62,7 @@ def extract(soup):
             }
             data["merged_pull"] = mpr
 
-    proposed_pull_requests = soup.find("h3",id="proposed-pull-requests")
+    proposed_pull_requests = search_root.find("h3",id="proposed-pull-requests")
     if proposed_pull_requests:
         ppr_span = proposed_pull_requests.find("span")
         ppr_inner_spans = ppr_span.find_all('span') if ppr_span else []
@@ -70,7 +73,7 @@ def extract(soup):
             }
             data["proposed_pull"] = ppr
 
-    closed_issues = soup.find("h3",id="closed-issues")
+    closed_issues = search_root.find("h3",id="closed-issues")
     if closed_issues:
         ci_span = closed_issues.find("span")
         ci_inner_spans = ci_span.find_all('span') if ci_span else []
@@ -81,7 +84,7 @@ def extract(soup):
             }
             data["closed_issues"] = ci
 
-    new_issues = soup.find("h3",id="new-issues")
+    new_issues = search_root.find("h3",id="new-issues")
     if new_issues:
         ni_span = new_issues.find("span")
         ni_inner_spans = ni_span.find_all('span') if ni_span else []
@@ -92,7 +95,7 @@ def extract(soup):
             }
             data["new_issues"] = ni
 
-    active_discussions = soup.find("h3",class_="conversation-list-heading")
+    active_discussions = search_root.find("h3",class_="conversation-list-heading")
     if active_discussions:
         ad_span = parse_number(
             safe_get_text(active_discussions.find("span", class_="text-emphasized"))

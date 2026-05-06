@@ -1,10 +1,20 @@
-from .utils import parse_number, parse_date, safe_get_attr, safe_get_text
+from .utils import (
+    find_section_by_heading_with_listitem,
+    parse_number,
+    parse_date,
+    safe_get_attr,
+    safe_get_text,
+)
 
 def extract(soup):
-    div = soup.find("div",id="user-repositories-list")
+    div = soup.find("div", id="user-repositories-list")
+    if not div:
+        div = find_section_by_heading_with_listitem(
+            soup, ["Repositories", "All repositories", "Popular repositories"]
+        )
     data = []
     if div:
-        ul = div.find("ul")
+        ul = div.find("ul") if div else None
         if ul:
             li = ul.find_all('li')
             if li:
