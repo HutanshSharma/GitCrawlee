@@ -1,14 +1,4 @@
-def parse_number(s: str) -> float:
-    s = s.strip().lower()
-    multipliers = {
-        'k': 1_000,
-        'm': 1_000_000,
-        'b': 1_000_000_000,
-    }
-    if s[-1] in multipliers:
-        return float(s[:-1]) * multipliers[s[-1]]
-    else:
-        return float(s.replace(",", ""))
+from .utils import parse_number, safe_get_text
 
 def extract(soup):
     data = {
@@ -44,54 +34,69 @@ def extract(soup):
         strongs = p.find_all("strong")
         strong_data = list()
         for i in strongs:
-            text = i.get_text(strip=True)
+            text = safe_get_text(i)
             strong_data.append(text)
 
-        merges_data = {
-            "authors":strong_data[0],
-            "commits_pushed_to_main":strong_data[1],
-            "commits_pushed_to_all_branches":strong_data[2],
-            "files_changed":strong_data[3],
-            "additions":strong_data[4],
-            "deletions":strong_data[6]
-        }
-        data['merges_data'] = merges_data
+        if len(strong_data) >= 7:
+            merges_data = {
+                "authors": strong_data[0],
+                "commits_pushed_to_main": strong_data[1],
+                "commits_pushed_to_all_branches": strong_data[2],
+                "files_changed": strong_data[3],
+                "additions": strong_data[4],
+                "deletions": strong_data[6]
+            }
+            data['merges_data'] = merges_data
 
     merged_pull_requests = soup.find("h3",id="merged-pull-requests")
     if merged_pull_requests:
         mpr_span = merged_pull_requests.find("span")
-        mpr_inner_spans = mpr_span.find_all('span')
-        mpr = {"Pull requests":parse_number(mpr_inner_spans[0].get_text(strip=True)),
-            "merged by":parse_number(mpr_inner_spans[1].get_text(strip=True))}
-        data["merged_pull"]=mpr
+        mpr_inner_spans = mpr_span.find_all('span') if mpr_span else []
+        if len(mpr_inner_spans) >= 2:
+            mpr = {
+                "Pull requests": parse_number(safe_get_text(mpr_inner_spans[0])),
+                "merged by": parse_number(safe_get_text(mpr_inner_spans[1]))
+            }
+            data["merged_pull"] = mpr
 
     proposed_pull_requests = soup.find("h3",id="proposed-pull-requests")
     if proposed_pull_requests:
         ppr_span = proposed_pull_requests.find("span")
-        ppr_inner_spans = ppr_span.find_all('span')
-        ppr = {"Pull requests":parse_number(ppr_inner_spans[0].get_text(strip=True)),
-            "opened by":parse_number(ppr_inner_spans[1].get_text(strip=True))}
-        data["proposed_pull"]=ppr
+        ppr_inner_spans = ppr_span.find_all('span') if ppr_span else []
+        if len(ppr_inner_spans) >= 2:
+            ppr = {
+                "Pull requests": parse_number(safe_get_text(ppr_inner_spans[0])),
+                "opened by": parse_number(safe_get_text(ppr_inner_spans[1]))
+            }
+            data["proposed_pull"] = ppr
 
     closed_issues = soup.find("h3",id="closed-issues")
     if closed_issues:
         ci_span = closed_issues.find("span")
-        ci_inner_spans = ci_span.find_all('span')
-        ci = {"issues":parse_number(ci_inner_spans[0].get_text(strip=True)),
-            "closed by":parse_number(ci_inner_spans[1].get_text(strip=True))}
-        data["closed_issues"]=ci
+        ci_inner_spans = ci_span.find_all('span') if ci_span else []
+        if len(ci_inner_spans) >= 2:
+            ci = {
+                "issues": parse_number(safe_get_text(ci_inner_spans[0])),
+                "closed by": parse_number(safe_get_text(ci_inner_spans[1]))
+            }
+            data["closed_issues"] = ci
 
     new_issues = soup.find("h3",id="new-issues")
     if new_issues:
         ni_span = new_issues.find("span")
-        ni_inner_spans = ni_span.find_all('span')
-        ni = {"issues":parse_number(ni_inner_spans[0].get_text(strip=True)),
-            "opened by":parse_number(ni_inner_spans[1].get_text(strip=True))}
-        data["new_issues"]=ni
+        ni_inner_spans = ni_span.find_all('span') if ni_span else []
+        if len(ni_inner_spans) >= 2:
+            ni = {
+                "issues": parse_number(safe_get_text(ni_inner_spans[0])),
+                "opened by": parse_number(safe_get_text(ni_inner_spans[1]))
+            }
+            data["new_issues"] = ni
 
     active_discussions = soup.find("h3",class_="conversation-list-heading")
     if active_discussions:
-        ad_span = parse_number(active_discussions.find("span",class_="text-emphasized").get_text(strip=True))
-        data["active_discussions"]=ad_span
+        ad_span = parse_number(
+            safe_get_text(active_discussions.find("span", class_="text-emphasized"))
+        )
+        data["active_discussions"] = ad_span
 
     return data

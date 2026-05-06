@@ -1,3 +1,6 @@
+from .utils import parse_number, safe_get_text
+
+
 def extract(soup):
     pulls = {
         "open":0,
@@ -9,18 +12,18 @@ def extract(soup):
     if div:
         anchor = div.find_all("a",href=lambda href: href and '/pulls' in href)
         if anchor:
-            open = anchor[0].get_text(strip=True)
-            closed = anchor[1].get_text(strip=True)
-            pulls['open'] = int(open.split(' ')[0])
-            pulls['closed'] = int(closed.split(' ')[0])
+            open_text = safe_get_text(anchor[0])
+            closed_text = safe_get_text(anchor[1])
+            pulls['open'] = int(parse_number(open_text.split(' ')[0] if open_text else ""))
+            pulls['closed'] = int(parse_number(closed_text.split(' ')[0] if closed_text else ""))
 
     milestones = soup.find('a',href=lambda href: href and '/milestones' in href)
     if milestones:
-        milestones_number = milestones.select_one('span').get_text(strip=True)
-        pulls['milestones'] = int(milestones_number)
+        milestones_number = safe_get_text(milestones.select_one('span'))
+        pulls['milestones'] = int(parse_number(milestones_number))
     labels = soup.find('a',href=lambda href: href and '/labels' in href)
     if labels:
-        labels_number = labels.select_one('span').get_text(strip=True)
-        pulls['labels'] = int(labels_number)
+        labels_number = safe_get_text(labels.select_one('span'))
+        pulls['labels'] = int(parse_number(labels_number))
     
     return pulls

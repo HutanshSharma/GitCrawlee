@@ -1,5 +1,7 @@
-from flask import jsonify
 import shutil
+
+from fastapi import APIRouter
+
 from crawlers.main import scrapper
 from crawlers.profile import extract as profile_scrap
 from crawlers.pulls import extract as pull_scrap
@@ -10,49 +12,62 @@ from crawlers.pulse import extract as pulse_scrap
 from crawlers.get_all_repos import extract as get_repos
 from crawlers.readme import extract as read_me
 from backend.file_structure import get_repo_structure
-from backend import app
+from backend.schemas import (
+    CommitsResponse,
+    IssuesResponse,
+    ProfileResponse,
+    PullsResponse,
+    PulseResponse,
+    ReadmeResponse,
+    RepoInfoResponse,
+    RepoListItem,
+    RepoStructureResponse,
+)
+
+router = APIRouter()
 
 repos_data = []
 
-@app.route('/profile/<nickname>')
-def profile(nickname):
+
+@router.get('/profile/{nickname}', response_model=ProfileResponse)
+def profile(nickname: str) -> ProfileResponse:
     link = f"https://github.com/{nickname}?tab=repositories"
     data = scrapper(link,profile_scrap)
-    return jsonify(data)
+    return data
 
-@app.route('/pulls/<nickname>/<repository>')
-def pulls(nickname,repository):
+@router.get('/pulls/{nickname}/{repository}', response_model=PullsResponse)
+def pulls(nickname: str, repository: str) -> PullsResponse:
     link = f"https://github.com/{nickname}/{repository}/pulls"
     data = scrapper(link,pull_scrap)
-    return jsonify(data)
+    return data
 
-@app.route('/repo/<nickname>/<repository>')
-def repo(nickname,repository):
+@router.get('/repo/{nickname}/{repository}', response_model=RepoInfoResponse)
+def repo(nickname: str, repository: str) -> RepoInfoResponse:
     link = f"https://github.com/{nickname}/{repository}"
     data = scrapper(link,repo_scrap)
     data["link"] = link
-    return jsonify(data)
+    return data
 
-@app.route('/issues/<nickname>/<repository>')
-def issues(nickname,repository):
+@router.get('/issues/{nickname}/{repository}', response_model=IssuesResponse)
+def issues(nickname: str, repository: str) -> IssuesResponse:
     link = f"https://github.com/{nickname}/{repository}/issues"
     data = scrapper(link,issue_scrap)
-    return jsonify(data)
+    return data
 
-@app.route('/commits/<nickname>/<repository>')
-def commits(nickname,repository):
+@router.get('/commits/{nickname}/{repository}', response_model=CommitsResponse)
+def commits(nickname: str, repository: str) -> CommitsResponse:
     link = f"https://github.com/{nickname}/{repository}/commits/main/"
     data = scrapper(link,commit_scrap)
-    return jsonify(data)
+    return data
 
-@app.route('/pulse/<nickname>/<repository>')
-def pulse(nickname,repository):
+@router.get('/pulse/{nickname}/{repository}', response_model=PulseResponse)
+def pulse(nickname: str, repository: str) -> PulseResponse:
     link = f"https://github.com/{nickname}/{repository}/pulse"
     data = scrapper(link,pulse_scrap)
-    return jsonify(data)
+    return data
 
-@app.route('/home/<nickname>')
-def home(nickname):
+@router.get('/home/{nickname}', response_model=list[RepoListItem])
+def home(nickname: str) -> list[RepoListItem]:
     global repos_data
     mainlink = f"https://github.com/{nickname}?tab=repositories"
     data = scrapper(mainlink,get_repos)
@@ -67,41 +82,41 @@ def home(nickname):
         i+=1
 
     repos_data = data
-    return jsonify(data)
+    return data
 
-@app.route('/search/<keyword>')
-def search(keyword):
+@router.get('/search/{keyword}', response_model=list[RepoListItem])
+def search(keyword: str) -> list[RepoListItem]:
     keyword = keyword.lower()
     data = []
     for i in repos_data:
         if keyword in i["name"].lower() or keyword in i["description"].lower():
             data.append(i)
 
-    return jsonify(data)
+    return data
 
-@app.route('/most_stared')
-def most_stared():
+@router.get('/most_stared', response_model=list[RepoListItem])
+def most_stared() -> list[RepoListItem]:
     sorted_data = sorted(repos_data,key = lambda x:-x['stars'])
     if len(sorted_data)>10:
         sorted_data = sorted_data[:10]
-    
-    return jsonify(sorted_data)
 
-@app.route("/language/<lang>")
-def search_language(lang):
+    return sorted_data
+
+@router.get("/language/{lang}", response_model=list[RepoListItem])
+def search_language(lang: str) -> list[RepoListItem]:
     lang = lang.lower()
     data = []
     for i in repos_data:
         if lang in i['most_used_language'].lower() or lang in i['languages']:
             data.append(i)
 
-    return jsonify(data)
+    return data
 
-@app.route("/repo-structure/<username>/<repo>")
-def repo_structure(username,repo):
+@router.get("/repo-structure/{username}/{repo}", response_model=RepoStructureResponse)
+def repo_structure(username: str, repo: str) -> RepoStructureResponse:
     data = get_repo_structure(username,repo)
-    shutil.rmtree('repo_temp')
-    return jsonify(data)
+    shutil.rmtree('repo_temp', ignore_errors=True)
+    return data
 
 
 

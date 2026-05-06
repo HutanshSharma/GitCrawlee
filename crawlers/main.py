@@ -1,6 +1,8 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import time
@@ -59,30 +61,40 @@ all.forEach(el => {
 return fullHTML;
 """
 
-def scrapper(playlist_url, extract, max_wait=100):
+def wait_for_dom_ready(driver, timeout=15):
+    try:
+        WebDriverWait(driver, timeout).until(
+            lambda d: d.execute_script("return document.readyState") == "complete"
+        )
+    except TimeoutException:
+        # Continue with best-effort rendering if the page stays busy.
+        pass
+
+
+def scrapper(page_url, extract, max_wait=100):
     driver = build_driver()
     try:
-        driver.get(playlist_url)
-        time.sleep(2)
-        prev_count = -1
+        driver.get(page_url)
+        wait_for_dom_ready(driver)
+        prev_height = -1
         stable_iterations = 0
         start = time.time()
         while True:
             driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
-            time.sleep(1.5)
+            time.sleep(1.0)
             try:
-                count = driver.execute_script(
-                    "return document.querySelectorAll('#contents ytd-playlist-video-renderer').length"
+                current_height = driver.execute_script(
+                "return document.documentElement.scrollHeight"
                 )
             except Exception:
-                count = 0
+                current_height = prev_height
 
-            if count == prev_count:
+            if current_height == prev_height:
                 stable_iterations += 1
             else:
                 stable_iterations = 0
 
-            prev_count = count
+            prev_height = current_height
 
             if stable_iterations >= 3 or (time.time() - start) > max_wait:
                 break
