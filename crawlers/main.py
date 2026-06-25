@@ -93,7 +93,7 @@ def wait_for_dom_ready(driver, timeout=15):
         pass
 
 
-def scrapper(page_url, extract, max_wait=100, cache_ttl=60, retries=3, backoff=1.0):
+def scraper(page_url, extract, max_wait=100, cache_ttl=60, retries=3, backoff=1.0):
   cache_key = _cache_key(page_url, extract)
   cached = _get_cache(cache_key, cache_ttl)
   if cached is not None:

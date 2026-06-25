@@ -1,6 +1,6 @@
 import {Star} from 'lucide-react'
 
-const RepoCard = ({ repo, onClick }) => {
+const RepoCard = ({ repo, onClick, index = 0 }) => {
   const getLanguageColor = (language) => {
     const colors = {
       'JavaScript': '#f1e05a',
@@ -28,22 +28,23 @@ const RepoCard = ({ repo, onClick }) => {
   };
 
   return (
-    <div 
+    <div
       onClick={onClick}
-      className="glass-morphism rounded-xl p-6 cursor-pointer card-hover transition-all duration-300 hover:border-primary/30"
+      style={{ animationDelay: `${Math.min(index * 0.04, 0.4)}s` }}
+      className="glass-morphism p-5 cursor-pointer card-hover reveal"
     >
-      <div className="flex items-start justify-between mb-4">
-        <h3 className="text-xl font-semibold text-white truncate flex-1">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <h3 className="text-base font-semibold text-white truncate flex-1">
           {repo.name}
         </h3>
-        <div className="flex items-center text-yellow-400 ml-4">
-          <span className="text-sm"><Star size={'15px'}/></span>
-          <span className="ml-1 text-sm">{repo.stars}</span>
+        <div className="flex items-center gap-1 text-yellow-400 shrink-0">
+          <Star size={14}/>
+          <span className="text-sm tabular-nums">{repo.stars}</span>
         </div>
       </div>
-      
+
       {repo.description && (
-        <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+        <p className="text-gray-400 text-sm mb-5 line-clamp-2 leading-relaxed min-h-[2.5rem]">
           {repo.description}
         </p>
       )}

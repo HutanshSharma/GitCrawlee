@@ -18,9 +18,9 @@ const LanguageChart = ({ repos }) => {
 
   const getLanguageColors = () => {
     const colors = [
-      '#3B82F6', '#8B5CF6', '#10B981', '#F59E0B', 
+      '#6366F1', '#A855F7', '#2DD4BF', '#F59E0B',
       '#EF4444', '#06B6D4', '#84CC16', '#F97316',
-      '#EC4899', '#6366F1', '#14B8A6', '#F59E0B'
+      '#EC4899', '#818CF8', '#14B8A6', '#FACC15'
     ];
     return colors;
   };
@@ -55,7 +55,7 @@ const LanguageChart = ({ repos }) => {
         backgroundColor: '#1F2937',
         titleColor: '#ffffff',
         bodyColor: '#D1D5DB',
-        borderColor: '#3B82F6',
+        borderColor: '#6366F1',
         borderWidth: 1
       }
     }

@@ -31,8 +31,8 @@ const ActivityChart = ({ repos }) => {
       {
         label: 'Repository Updates',
         data: sortedData.map(([, count]) => count),
-        backgroundColor: 'rgba(59, 130, 246, 0.6)',
-        borderColor: '#3B82F6',
+        backgroundColor: 'rgba(99, 102, 241, 0.6)',
+        borderColor: '#6366F1',
         borderWidth: 2,
         borderRadius: 8,
         borderSkipped: false,
@@ -51,7 +51,7 @@ const ActivityChart = ({ repos }) => {
         backgroundColor: '#1F2937',
         titleColor: '#ffffff',
         bodyColor: '#D1D5DB',
-        borderColor: '#3B82F6',
+        borderColor: '#6366F1',
         borderWidth: 1
       }
     },

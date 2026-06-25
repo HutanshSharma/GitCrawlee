@@ -1,4 +1,3 @@
-import React from 'react';
 import { Scatter } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -67,7 +66,7 @@ const RepoSizeChart = ({ repos }) => {
         backgroundColor: '#1F2937',
         titleColor: '#ffffff',
         bodyColor: '#D1D5DB',
-        borderColor: '#3B82F6',
+        borderColor: '#6366F1',
         borderWidth: 1,
         callbacks: {
           title: function(context) {

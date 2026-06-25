@@ -28,78 +28,76 @@ const Dashboard = ({ userData, onRepoSelect, onBackToHome, loadall, isloaded, se
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold gradient-text mb-2">
-              {userData.profile.username}
-            </h1>
-            <div className="flex items-center gap-4">
-              <span className="text-gray-400">@{userData.profile.nickname}</span>
-              <span className="px-3 py-1 bg-primary/20 text-primary rounded-full text-md flex gap-2">
-                <User></User>
-                <div>Personal</div>
-              </span>
+        <div className="reveal flex items-center justify-between gap-4 mb-8">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-14 h-14 rounded-lg bg-primary/15 text-primary flex items-center justify-center text-2xl font-semibold shrink-0">
+              {(userData.profile.username || userData.profile.nickname || '?').charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-3xl font-bold gradient-text mb-1 truncate">
+                {userData.profile.username}
+              </h1>
+              <div className="flex items-center gap-3">
+                <span className="text-gray-400 text-sm">@{userData.profile.nickname}</span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/15 text-primary rounded-md text-xs font-medium">
+                  <User size={13}/> Personal
+                </span>
+              </div>
             </div>
           </div>
           <button
             onClick={onBackToHome}
-            className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl transition-all duration-300 flex items-center gap-2"
+            className="btn shrink-0 px-5 py-2.5 glass-morphism hover:border-white/15 text-gray-300 hover:text-white rounded-lg flex items-center gap-2"
           >
             ← Back to Home
           </button>
         </div>
 
-        <ProfileStats profile={userData.profile} />
+        <div className="reveal" style={{ animationDelay: '0.05s' }}>
+          <ProfileStats profile={userData.profile} />
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="reveal grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6" style={{ animationDelay: '0.1s' }}>
           <LanguageChart repos={userData.profile.repos_list} />
           <ActivityChart repos={userData.profile.repos_list} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="reveal grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6" style={{ animationDelay: '0.16s' }}>
           <StarsChart repos={userData.profile.repos_list} />
           <RepoSizeChart repos={userData.profile.repos_list} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="reveal grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6" style={{ animationDelay: '0.22s' }}>
           <CommitFrequencyChart repos={userData.profile.repos_list} />
           <LanguageEvolutionChart repos={userData.profile.repos_list} />
         </div>
 
-        <div className="glass-morphism rounded-xl p-6 mb-8">
-          <h3 className="text-2xl font-bold text-white mb-6">Repository Insights</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">
-                {userData.profile.repos_list.reduce((acc, repo) => acc + (repo.stars || 0), 0)}
+        <div className="reveal glass-morphism mb-6 overflow-hidden" style={{ animationDelay: '0.28s' }}>
+          <div className="px-6 pt-6 pb-5">
+            <h3 className="text-lg font-semibold text-white">Repository Insights</h3>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-white/[0.06]">
+            {[
+              { value: userData.profile.repos_list.reduce((acc, repo) => acc + (repo.stars || 0), 0), label: 'Total Stars', color: 'text-primary' },
+              { value: allLanguages.length, label: 'Languages Used', color: 'text-secondary' },
+              { value: userData.profile.repos_list.filter(repo => repo.description && repo.description.trim()).length, label: 'Documented Repos', color: 'text-accent' },
+              { value: userData.profile.repos_list.filter(repo => new Date(repo.updated_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length, label: 'Recent Updates', color: 'text-yellow-400' },
+            ].map((s) => (
+              <div key={s.label} className="bg-[#0b0c10] px-6 py-7 text-center">
+                <div className={`text-3xl font-bold mb-1 tabular-nums ${s.color}`}>{s.value}</div>
+                <div className="text-sm text-gray-500">{s.label}</div>
               </div>
-              <div className="text-gray-400">Total Stars</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-secondary mb-2">
-                {allLanguages.length}
-              </div>
-              <div className="text-gray-400">Languages Used</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-accent mb-2">
-                {userData.profile.repos_list.filter(repo => repo.description && repo.description.trim()).length}
-              </div>
-              <div className="text-gray-400">Documented Repos</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-400 mb-2">
-                {userData.profile.repos_list.filter(repo => new Date(repo.updated_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length}
-              </div>
-              <div className="text-gray-400">Recent Updates</div>
-            </div>
+            ))}
           </div>
         </div>
 
-        <div className='flex flex-col gap-5 glass-morphism rounded-xl p-12'>
-          <h2 className="text-2xl font-bold text-white">Search Through Repositories</h2>
-          {!isloaded && <p>The search process may take some time, depending on the number of repositories being scanned. Larger sets of repositories will naturally require more processing time.</p>}
-          {isloaded && <p>Repos data is available search through them</p>}
+        <div className='reveal flex flex-col gap-4 glass-morphism p-8' style={{ animationDelay: '0.34s' }}>
+          <h2 className="text-xl font-semibold text-white">Search Through Repositories</h2>
+          <p className="text-sm text-gray-400 max-w-2xl">
+            {!isloaded
+              ? 'Scanning may take a moment depending on how many repositories need to be processed — larger profiles take a little longer.'
+              : 'Repository data is ready. Search and filter through them below.'}
+          </p>
           <button onClick={()=>{
                               if(!isloaded){
                                 loadall()
@@ -109,39 +107,43 @@ const Dashboard = ({ userData, onRepoSelect, onBackToHome, loadall, isloaded, se
                                 navigate('/repos')
                               }
                             }}
-            className='w-full bg-gradient-to-r from-primary to-secondary py-4 px-6 rounded-xl text-white font-semibold transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100'>
+            className='btn self-start bg-primary hover:bg-primary/90 py-3 px-6 rounded-lg text-white font-semibold hover:shadow-[0_8px_28px_-8px_rgba(99,102,241,0.7)]'>
             {!isloaded ? 'Start Searching':'Search'}
           </button>
         </div>
         
-        <div className="mt-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">
-              Latest Repositories ({filteredRepos.length})
+        <div className="reveal mt-8" style={{ animationDelay: '0.4s' }}>
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+              Latest Repositories
+              <span className="text-sm text-gray-500 font-normal tabular-nums">{filteredRepos.length}</span>
             </h2>
-            <div className="flex items-center gap-4 text-sm text-gray-400">
+            <div className="hidden sm:flex items-center gap-4 text-xs text-gray-500">
               <span className="flex items-center">
-                <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                <span className="w-1.5 h-1.5 bg-accent rounded-full mr-2"></span>
                 Recently Updated
               </span>
               <span className="flex items-center">
-                <span className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></span>
+                <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-2"></span>
                 Has Stars
               </span>
             </div>
           </div>
-          
+
           {filteredRepos.length === 0 ? (
-            <div className="glass-morphism rounded-xl p-12 text-center">
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold text-gray-300 mb-2">No repositories found</h3>
-              <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+            <div className="glass-morphism p-16 text-center">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-gray-500">
+                <User size={20} />
+              </div>
+              <h3 className="text-base font-semibold text-gray-300 mb-1">No repositories found</h3>
+              <p className="text-sm text-gray-500">Try adjusting your search or filter criteria</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredRepos.map((repo, index) => (
                 <RepoCard
                   key={index}
+                  index={index}
                   repo={repo}
                   onClick={() =>{
                     onRepoSelect(repo.name)

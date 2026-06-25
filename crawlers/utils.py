@@ -32,12 +32,6 @@ def text_by_selectors(soup: Any, selectors: Iterable[str], default: str = "") ->
     return safe_get_text(first_by_selectors(soup, selectors), default)
 
 
-def attr_by_selectors(
-    soup: Any, selectors: Iterable[str], attr: str, default: str = ""
-) -> str:
-    return safe_get_attr(first_by_selectors(soup, selectors), attr, default)
-
-
 def text_by_labels(soup: Any, labels: Iterable[str], default: str = "") -> str:
     for label in labels:
         label_lower = label.lower()
@@ -69,14 +63,6 @@ def find_section_by_heading(soup: Any, headings: Iterable[str]) -> Any:
         if header:
             return header.parent or header
     return None
-
-
-def find_section_by_heading_with_list(soup: Any, headings: Iterable[str]) -> Any:
-    section = find_section_by_heading(soup, headings)
-    if not section:
-        return None
-    list_node = section.find("ul") or section.find("ol")
-    return list_node or section
 
 
 def find_section_by_heading_with_listitem(

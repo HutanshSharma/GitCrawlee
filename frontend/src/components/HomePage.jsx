@@ -1,6 +1,10 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom'
 import { GitGraphIcon, Computer, Search, Star,Rocket, EyeClosedIcon, User} from "lucide-react"
+
+const LightRays = lazy(() => import('./LightRays'));
+const reduceMotion = typeof window !== 'undefined'
+  && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const HomePage = ({ onSubmit }) => {
   const navigate = useNavigate()
@@ -67,17 +71,37 @@ const HomePage = ({ onSubmit }) => {
   return (
     <div className="min-h-screen">
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bgbody"></div>
-        <div className="relative max-w-7xl mx-auto px-6 py-20">
+        {!reduceMotion && (
+          <div className="rays-layer" aria-hidden="true">
+            <Suspense fallback={null}>
+              <LightRays
+                raysOrigin="top-center"
+                raysColor="#ffffff"
+                raysSpeed={0.9}
+                lightSpread={0.8}
+                rayLength={1.4}
+                fadeDistance={1.1}
+                followMouse
+                mouseInfluence={0.12}
+                noiseAmount={0.06}
+                distortion={0.02}
+              />
+            </Suspense>
+          </div>
+        )}
+        <div className="relative max-w-7xl mx-auto px-6 py-24">
           <div className="text-center mb-16">
-            <h1 className="text-6xl md:text-7xl font-bold gradient-text mb-6 animate-fade-in">
+            <div className="reveal inline-flex items-center gap-2 px-3 py-1 mb-7 rounded-full border border-white/10 bg-white/[0.03] text-xs text-gray-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent" /> GitHub profile intelligence
+            </div>
+            <h1 className="reveal text-6xl md:text-8xl font-bold gradient-text mb-6 tracking-tight" style={{ animationDelay: '0.05s' }}>
               GitCrawlee
             </h1>
-            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto animate-slide-up">
-              Unlock powerful insights from any GitHub profile with beautiful visualizations, 
-              comprehensive analytics, and detailed repository breakdowns
+            <p className="reveal text-lg md:text-xl text-gray-400 mb-8 max-w-2xl mx-auto leading-relaxed" style={{ animationDelay: '0.12s' }}>
+              Unlock powerful insights from any GitHub profile with beautiful visualizations,
+              comprehensive analytics, and detailed repository breakdowns.
             </p>
-            <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-400">
+            <div className="reveal flex flex-wrap justify-center gap-4 text-sm text-gray-400" style={{ animationDelay: '0.18s' }}>
               <span className="flex items-center">
                 <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
                 Real-time Analysis
@@ -94,7 +118,7 @@ const HomePage = ({ onSubmit }) => {
           </div>
 
           <div className="max-w-md mx-auto mb-20">
-            <div className="glass-morphism rounded-3xl p-8 animate-slide-up">
+            <div className="glass-morphism p-8 reveal" style={{ animationDelay: '0.24s' }}>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label htmlFor="nickname" className="block text-sm font-medium text-gray-300 mb-2">
@@ -107,21 +131,21 @@ const HomePage = ({ onSubmit }) => {
                     value={formData.nickname}
                     onChange={handleInputChange}
                     placeholder="e.g. HutanshSharma"
-                    className="w-full px-4 py-3 bg-dark-100 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+                    className="input-glow w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-lg text-white placeholder-gray-500"
                     required
                   />
                 </div>
 
-                <div className='flex gap-5 px-4'>
-                  <div className="mb-2"><User size={'25px'} className=' text-red-300'/></div>
-                  <label className="block text-sm font-medium text-red-300 mb-3">
-                    Only Personal Accounts are supported.
-                  </label>
+                <div className="flex items-center gap-3 rounded-xl bg-white/[0.03] border border-white/5 px-4 py-3">
+                  <User size={18} className="text-gray-400 shrink-0"/>
+                  <span className="text-sm text-gray-400">
+                    Only personal accounts are supported.
+                  </span>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-primary to-secondary py-4 px-6 rounded-xl text-white font-semibold transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+                  className="btn w-full bg-primary hover:bg-primary/90 py-3.5 px-6 rounded-lg text-white font-semibold hover:shadow-[0_8px_28px_-8px_rgba(99,102,241,0.7)]"
                 >
                   Start Analysis
                 </button>
@@ -132,63 +156,59 @@ const HomePage = ({ onSubmit }) => {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-20">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-white mb-4">Powerful Analytics Features</h2>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+        <div className="text-center mb-14">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-3 tracking-tight">Powerful Analytics Features</h2>
+          <p className="text-base text-gray-400 max-w-2xl mx-auto">
             Discover comprehensive insights about GitHub profiles with our advanced analysis tools
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/[0.06] rounded-xl overflow-hidden border border-white/[0.06]">
           {features.map((feature, index) => (
-            <div 
-              key={index} 
-              className="glass-morphism rounded-xl p-6 card-hover animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
+            <div
+              key={index}
+              className="reveal group bg-[#0b0c10] hover:bg-white/[0.02] p-7 transition-colors duration-300"
+              style={{ animationDelay: `${0.05 + index * 0.06}s` }}
             >
-              <div className="text-4xl mb-4"><feature.icon className="w-8 h-8 text-white"/></div>
-              <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
-              <p className="text-gray-400 leading-relaxed">{feature.description}</p>
+              <div className="w-11 h-11 mb-5 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-0.5">
+                <feature.icon className="w-5 h-5 text-gray-300"/>
+              </div>
+              <h3 className="text-base font-semibold text-white mb-2">{feature.title}</h3>
+              <p className="text-sm text-gray-400 leading-relaxed">{feature.description}</p>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-20">
-        <div className="glass-morphism rounded-3xl p-12">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold gradient-text mb-4">What You'll Discover</h2>
-            <p className="text-xl text-gray-400">
-              Get detailed insights across multiple dimensions of GitHub activity
-            </p>
-          </div>
+      <div className="max-w-7xl mx-auto px-6 pb-24">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold accent-text mb-3 tracking-tight">What You'll Discover</h2>
+          <p className="text-base text-gray-400">
+            Detailed insights across multiple dimensions of GitHub activity
+          </p>
+        </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center flex flex-col items-center">
-              <GitGraphIcon size={'40px'} className="font-bold text-primary mb-2"/>
-              <div className="text-2xl font-bold text-white mb-1">Repository</div>
-              <div className="text-gray-400">Statistics</div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-white/[0.06] rounded-xl overflow-hidden border border-white/[0.06]">
+          {[
+            { Icon: GitGraphIcon, color: 'text-primary', title: 'Repository', sub: 'Statistics' },
+            { Icon: Computer, color: 'text-secondary', title: 'Language', sub: 'Distribution' },
+            { Icon: Rocket, color: 'text-accent', title: 'Activity', sub: 'Patterns' },
+            { Icon: Star, color: 'text-yellow-400', title: 'Engagement', sub: 'Metrics' },
+          ].map(({ Icon, color, title, sub }, i) => (
+            <div
+              key={title}
+              className="reveal group bg-[#0b0c10] hover:bg-white/[0.02] p-8 flex flex-col items-center text-center transition-colors duration-300"
+              style={{ animationDelay: `${0.05 + i * 0.06}s` }}
+            >
+              <Icon size={32} className={`${color} mb-3 transition-transform duration-300 group-hover:-translate-y-0.5`}/>
+              <div className="text-lg font-semibold text-white">{title}</div>
+              <div className="text-sm text-gray-500">{sub}</div>
             </div>
-            <div className="text-center flex flex-col items-center">
-              <Computer size={'40px'} className="text-3xl font-bold text-secondary mb-2"/>
-              <div className="text-2xl font-bold text-white mb-1">Language</div>
-              <div className="text-gray-400">Distribution</div>
-            </div>
-            <div className="text-center flex flex-col items-center">
-              <Rocket size={'40px'} className="text-3xl font-bold text-accent mb-2"/>
-              <div className="text-2xl font-bold text-white mb-1">Activity</div>
-              <div className="text-gray-400">Patterns</div>
-            </div>
-            <div className="text-center flex flex-col items-center">
-              <Star size={'40px'} className="text-3xl font-bold text-yellow-400 mb-2"/>
-              <div className="text-2xl font-bold text-white mb-1">Engagement</div>
-              <div className="text-gray-400">Metrics</div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center pb-16 text-sm text-gray-600">
         <p>Enter a GitHub username above to start exploring comprehensive profile analytics</p>
       </div>
     </div>

@@ -31,10 +31,10 @@ const LanguageEvolutionChart = ({ repos }) => {
       {
         label: 'Repository Count',
         data: topLanguages.map(([, count]) => count),
-        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-        borderColor: '#3B82F6',
+        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+        borderColor: '#6366F1',
         borderWidth: 2,
-        pointBackgroundColor: '#3B82F6',
+        pointBackgroundColor: '#6366F1',
         pointBorderColor: '#ffffff',
         pointBorderWidth: 2,
         pointRadius: 6,
@@ -54,7 +54,7 @@ const LanguageEvolutionChart = ({ repos }) => {
         backgroundColor: '#1F2937',
         titleColor: '#ffffff',
         bodyColor: '#D1D5DB',
-        borderColor: '#3B82F6',
+        borderColor: '#6366F1',
         borderWidth: 1,
         callbacks: {
           label: function(context) {

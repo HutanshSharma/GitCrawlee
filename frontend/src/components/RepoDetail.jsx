@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useLayoutEffect } from 'react';
 import { Bar, Line, Doughnut, Radar, PolarArea } from 'react-chartjs-2';
 import RadialFileMap from './RepoGraph';
 import {
@@ -24,6 +24,24 @@ ChartJS.register(
 
 const RepoDetail = ({ repo, onBack, prevPage }) => {
   const [activeTab, setActiveTab] = useState('overview');
+  const tabRefs = useRef({});
+  const [indicator, setIndicator] = useState({ left: 0, top: 0, width: 0, height: 0 });
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = tabRefs.current[activeTab];
+      if (el) setIndicator({ left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight });
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [activeTab]);
+
+  const commitCounts = Object.values(repo.commits);
+  const activeDays = commitCounts.length;
+  const totalCommits = commitCounts.reduce((sum, count) => sum + count, 0);
+  const peakDay = activeDays ? Math.max(...commitCounts) : 0;
+  const avgPerDay = activeDays ? (totalCommits / activeDays).toFixed(1) : '0.0';
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: ChartColumnBig, color:'text-emerald-500' },
@@ -107,20 +125,15 @@ const RepoDetail = ({ repo, onBack, prevPage }) => {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-gray-400">Total Commits:</span>
-              <span className="text-white">
-                {Object.values(repo.commits).reduce((sum, count) => sum + count, 0)}
-              </span>
+              <span className="text-white">{totalCommits}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Active Days:</span>
-              <span className="text-white">{Object.keys(repo.commits).length}</span>
+              <span className="text-white">{activeDays}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Avg Commits/Day:</span>
-              <span className="text-white">
-                {(Object.values(repo.commits).reduce((sum, count) => sum + count, 0) / 
-                  Object.keys(repo.commits).length).toFixed(1)}
-              </span>
+              <span className="text-white">{avgPerDay}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Most Active Day:</span>
@@ -234,8 +247,8 @@ const RepoDetail = ({ repo, onBack, prevPage }) => {
       datasets: [{
         label: 'Commits',
         data: commitData.map(item => item.count),
-        borderColor: '#3B82F6',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        borderColor: '#6366F1',
+        backgroundColor: 'rgba(99, 102, 241, 0.1)',
         borderWidth: 2,
         fill: true,
         tension: 0.4
@@ -296,28 +309,19 @@ const RepoDetail = ({ repo, onBack, prevPage }) => {
           <h3 className="text-lg font-semibold text-white mb-4">Activity Summary</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-primary mb-1">
-                {Math.max(...Object.values(repo.commits))}
-              </div>
+              <div className="text-2xl font-bold text-primary mb-1">{peakDay}</div>
               <div className="text-sm text-gray-400">Peak Day</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-secondary mb-1">
-                {(Object.values(repo.commits).reduce((sum, count) => sum + count, 0) / 
-                  Object.keys(repo.commits).length).toFixed(1)}
-              </div>
+              <div className="text-2xl font-bold text-secondary mb-1">{avgPerDay}</div>
               <div className="text-sm text-gray-400">Avg/Day</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-accent mb-1">
-                {Object.keys(repo.commits).length}
-              </div>
+              <div className="text-2xl font-bold text-accent mb-1">{activeDays}</div>
               <div className="text-sm text-gray-400">Active Days</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-400 mb-1">
-                {Object.values(repo.commits).reduce((sum, count) => sum + count, 0)}
-              </div>
+              <div className="text-2xl font-bold text-yellow-400 mb-1">{totalCommits}</div>
               <div className="text-sm text-gray-400">Total Commits</div>
             </div>
           </div>
@@ -387,7 +391,7 @@ const RepoDetail = ({ repo, onBack, prevPage }) => {
       labels: ['Open PRs', 'Closed PRs', 'Labels', 'Milestones'],
       datasets: [{
         data: [repo.pulls.open, repo.pulls.closed, repo.pulls.labels, repo.pulls.milestones],
-        backgroundColor: ['#3B82F6', '#8B5CF6', '#F59E0B', '#06B6D4'],
+        backgroundColor: ['#6366F1', '#A855F7', '#F59E0B', '#06B6D4'],
         borderWidth: 2,
         borderColor: '#1F2937'
       }]
@@ -518,10 +522,10 @@ const RepoDetail = ({ repo, onBack, prevPage }) => {
           repo.pulse.new_issues['issues'],
           repo.pulse.proposed_pull["Pull requests"]
         ],
-        backgroundColor: 'rgba(139, 92, 246, 0.2)',
-        borderColor: '#8B5CF6',
+        backgroundColor: 'rgba(168, 85, 247, 0.2)',
+        borderColor: '#A855F7',
         borderWidth: 2,
-        pointBackgroundColor: '#8B5CF6',
+        pointBackgroundColor: '#A855F7',
         pointBorderColor: '#ffffff',
         pointBorderWidth: 2
       }]
@@ -622,9 +626,6 @@ const RepoDetail = ({ repo, onBack, prevPage }) => {
   };
 
   const renderAnalytics = () => {
-    // Repository health score calculation
-    const totalCommits = Object.values(repo.commits).reduce((sum, count) => sum + count, 0);
-    const avgCommits = totalCommits / Object.keys(repo.commits).length;
     const languageComplexity = repo.repoData.languages.length;
     const dominantLanguage = repo.repoData.languages[0];
     
@@ -633,17 +634,17 @@ const RepoDetail = ({ repo, onBack, prevPage }) => {
       datasets: [{
         label: 'Repository Health',
         data: [
-          Math.min(totalCommits / 10, 10), // Activity
-          Math.min(Object.keys(repo.commits).length / 5, 10), // Consistency
+          Math.min(totalCommits / 10, 10),
+          Math.min(activeDays / 5, 10),
           Math.min(languageComplexity * 2, 10), // Language Diversity
           Math.min((repo.repoData.stars + repo.repoData.forks + repo.repoData.watchers) / 2, 10), // Community
           repo.repoData.description ? 8 : 3, // Maintenance
           repo.repoData.topics.length > 0 ? 7 : 2 // Documentation
         ],
-        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-        borderColor: '#3B82F6',
+        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+        borderColor: '#6366F1',
         borderWidth: 2,
-        pointBackgroundColor: '#3B82F6',
+        pointBackgroundColor: '#6366F1',
         pointBorderColor: '#ffffff',
         pointBorderWidth: 2
       }]
@@ -687,7 +688,7 @@ const RepoDetail = ({ repo, onBack, prevPage }) => {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-gray-400">Commit Frequency</span>
-                <span className="text-primary font-semibold">{avgCommits.toFixed(1)}/day</span>
+                <span className="text-primary font-semibold">{avgPerDay}/day</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-400">Language Diversity</span>
@@ -717,18 +718,14 @@ const RepoDetail = ({ repo, onBack, prevPage }) => {
           <h3 className="text-lg font-semibold text-white mb-4">Development Insights</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">
-                {Object.keys(repo.commits).length}
-              </div>
+              <div className="text-3xl font-bold text-primary mb-2">{activeDays}</div>
               <div className="text-gray-400 text-sm">Active Development Days</div>
               <div className="text-xs text-gray-500 mt-1">
                 Shows consistency in development
               </div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-secondary mb-2">
-                {Math.max(...Object.values(repo.commits))}
-              </div>
+              <div className="text-3xl font-bold text-secondary mb-2">{peakDay}</div>
               <div className="text-gray-400 text-sm">Peak Daily Commits</div>
               <div className="text-xs text-gray-500 mt-1">
                 Highest productivity day
@@ -786,32 +783,38 @@ const RepoDetail = ({ repo, onBack, prevPage }) => {
           </div>
           <button
             onClick={onBack}
-            className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl transition-all duration-300"
+            className="shrink-0 px-5 py-2.5 glass-morphism hover:border-white/15 text-gray-300 hover:text-white rounded-xl transition-all duration-200"
           >
             ← Back to {prevPage==='dashboard' ? 'Dashboard':'Search'}
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex flex-wrap gap-2 mb-8">
+        <div className="sticky top-4 z-20 flex flex-wrap gap-1.5 mb-8 p-1.5 rounded-lg tabbar">
+          <div
+            className="absolute rounded-md bg-white/[0.08] border border-white/[0.06] pointer-events-none"
+            style={{
+              left: indicator.left, top: indicator.top, width: indicator.width, height: indicator.height,
+              transition: 'left 0.35s var(--spring), top 0.35s var(--spring), width 0.35s var(--spring), height 0.35s var(--spring)',
+            }}
+          />
           {tabs.map(tab => (
             <button
               key={tab.id}
+              ref={(el) => (tabRefs.current[tab.id] = el)}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 flex ${
-                activeTab === tab.id
-                  ? 'bg-primary text-white'
-                  : 'glass-morphism text-gray-300 hover:text-white'
+              className={`relative z-10 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center gap-2 ${
+                activeTab === tab.id ? 'text-white' : 'text-gray-400 hover:text-white'
               }`}
             >
-              <span className="mr-2"><tab.icon size={'20px'} className={`${tab.color}`}/></span>
-              <div>{tab.label}</div>
+              <tab.icon size={16} className={tab.color}/>
+              {tab.label}
             </button>
           ))}
         </div>
 
         {/* Tab Content */}
-        <div className="animate-fade-in">
+        <div key={activeTab} className="reveal">
           {renderTabContent()}
         </div>
       </div>

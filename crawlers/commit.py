@@ -1,13 +1,12 @@
-from .utils import find_section_by_heading, safe_get_text
-
+from .utils import safe_get_text
+import re
 
 def extract(soup):
     commit_data = {}
-
-    commits_section = find_section_by_heading(soup, ["Commits"])
-    search_root = commits_section if commits_section else soup
-
-    data = search_root.find_all("div",class_="mt-0 prc-Timeline-TimelineBody-WWZY0")
+    data = soup.find_all(
+        "div",
+        class_=re.compile(r"prc-Timeline-TimelineBody")
+    )
     if data:
         for i in data:
             date = safe_get_text(i.select_one("h3"))

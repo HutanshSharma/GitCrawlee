@@ -1,9 +1,10 @@
 from .utils import (
-    find_section_by_heading,
     parse_number,
     text_by_labels,
     text_by_selectors,
 )
+
+import re
 
 def extract(soup):
     pulls = {
@@ -12,26 +13,19 @@ def extract(soup):
         "milestones":0,
         "labels":0
     }
-    pulls_section = find_section_by_heading(soup, ["Pull requests", "Pulls"])
-    search_root = pulls_section if pulls_section else soup
-    open_text = text_by_selectors(
-        search_root,
-        [
-            "a[href*='/pulls'] span",
-            "a[href*='/pulls'] strong",
-        ],
-    ) or text_by_labels(search_root, ["Open"])
-    closed_text = text_by_selectors(
-        search_root,
-        [
-            "a[href*='/pulls'] span",
-            "a[href*='/pulls'] strong",
-        ],
-    ) or text_by_labels(search_root, ["Closed"])
-    if open_text:
-        pulls['open'] = int(parse_number(open_text.split(' ')[0] if open_text else ""))
-    if closed_text:
-        pulls['closed'] = int(parse_number(closed_text.split(' ')[0] if closed_text else ""))
+    search_root = soup
+    for tag in search_root.select("a[href*='/pulls']"):
+        text = tag.get_text(" ", strip=True)
+        match = re.search(r"\d+", text)
+        if not match:
+            continue
+
+        count = int(match.group())
+
+        if "Open" in text:
+            pulls["open"] = count
+        elif "Closed" in text:
+            pulls["closed"] = count
 
     milestones_number = text_by_selectors(
         search_root,

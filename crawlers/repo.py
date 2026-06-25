@@ -75,20 +75,8 @@ def extract(soup):
                     'percentage': language_percentage
                 })
 
-    sidebar = soup.find('div', class_="Layout-sidebar")
-    if sidebar:
-        p = sidebar.find('p')
-        if p:
-            description = safe_get_text(p)
-            repo_info['description'] = description
-        topic_a = sidebar.find_all('a', href=lambda href: href and '/topics' in href)
-        topics = []
-        if topic_a:
-            for i in topic_a:
-                text = safe_get_text(i)
-                topics.append(text)
-            repo_info['topics'] = topics
-            
+    topic_tags = soup.find_all("a",class_=["topic-tag"])
+    repo_info["topics"] = [tag.get_text(strip=True) for tag in topic_tags]      
 
     return repo_info
 
