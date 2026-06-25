@@ -1,5 +1,7 @@
 import { useState, useRef, useLayoutEffect } from 'react';
 import { Bar, Line, Doughnut, Radar, PolarArea } from 'react-chartjs-2';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import RadialFileMap from './RepoGraph';
 import {
   Chart as ChartJS,
@@ -15,7 +17,7 @@ import {
   Legend,
   Filler
 } from 'chart.js';
-import { ChartColumnBig, Computer, FolderOpen,SquareActivity,BadgeAlert,HeartPulse, ChartPie,Link} from "lucide-react"
+import { ChartColumnBig, Computer, FolderOpen,SquareActivity,BadgeAlert,HeartPulse, ChartPie,Link,BookText} from "lucide-react"
 
 ChartJS.register(
   CategoryScale, LinearScale, BarElement, PointElement, 
@@ -43,10 +45,40 @@ const RepoDetail = ({ repo, onBack, prevPage }) => {
   const peakDay = activeDays ? Math.max(...commitCounts) : 0;
   const avgPerDay = activeDays ? (totalCommits / activeDays).toFixed(1) : '0.0';
 
+  const toNum = (v) => (typeof v === 'number' ? v : parseFloat(v)) || 0;
+  const stars = toNum(repo.repoData.stars);
+  const forks = toNum(repo.repoData.forks);
+  const watchers = toNum(repo.repoData.watchers);
+  const community = stars + forks + watchers;
+
+  const readme = (repo.readme || '').trim();
+  const hasDescription = !!(repo.repoData.description && repo.repoData.description.trim());
+  const hasTopics = repo.repoData.topics.length > 0;
+  const docScore = Math.min(10,
+    (readme.length > 1500 ? 6 : readme.length > 300 ? 4 : readme.length > 0 ? 2 : 0)
+    + (hasDescription ? 2 : 0)
+    + (hasTopics ? 2 : 0)
+  );
+  const docLabel = docScore >= 7 ? 'Good' : docScore >= 4 ? 'Fair' : 'Needs Improvement';
+
+  const commitTimes = Object.keys(repo.commits)
+    .map((d) => new Date(d).getTime())
+    .filter(Number.isFinite);
+  const daysSinceCommit = commitTimes.length
+    ? (Date.now() - Math.max(...commitTimes)) / 86400000
+    : Infinity;
+  const maintenanceScore = !Number.isFinite(daysSinceCommit) ? 2
+    : daysSinceCommit < 14 ? 10
+    : daysSinceCommit < 30 ? 8
+    : daysSinceCommit < 90 ? 6
+    : daysSinceCommit < 180 ? 4
+    : daysSinceCommit < 365 ? 2 : 1;
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: ChartColumnBig, color:'text-emerald-500' },
     { id: 'languages', label: 'Languages', icon: Computer, color:'text-indigo-500'},
     { id: 'files', label: 'File Structure', icon: FolderOpen, color:'text-yellow-200'},
+    { id: 'readme', label: 'Readme', icon: BookText, color:'text-sky-300'},
     { id: 'activity', label: 'Activity', icon: SquareActivity, color:'text-teal-300'},
     { id: 'issues', label: 'Issues & PRs', icon: BadgeAlert, color:'text-red-600'},
     { id: 'pulse', label: 'Pulse', icon: HeartPulse, color:'text-rose-300'},
@@ -636,10 +668,10 @@ const RepoDetail = ({ repo, onBack, prevPage }) => {
         data: [
           Math.min(totalCommits / 10, 10),
           Math.min(activeDays / 5, 10),
-          Math.min(languageComplexity * 2, 10), // Language Diversity
-          Math.min((repo.repoData.stars + repo.repoData.forks + repo.repoData.watchers) / 2, 10), // Community
-          repo.repoData.description ? 8 : 3, // Maintenance
-          repo.repoData.topics.length > 0 ? 7 : 2 // Documentation
+          Math.min(languageComplexity * 2, 10),
+          Math.min(community / 2, 10),
+          maintenanceScore,
+          docScore
         ],
         backgroundColor: 'rgba(99, 102, 241, 0.2)',
         borderColor: '#6366F1',
@@ -700,14 +732,12 @@ const RepoDetail = ({ repo, onBack, prevPage }) => {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-400">Community Score</span>
-                <span className="text-yellow-400 font-semibold">
-                  {repo.repoData.stars + repo.repoData.forks + repo.repoData.watchers}
-                </span>
+                <span className="text-yellow-400 font-semibold tabular-nums">{community}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-400">Documentation</span>
-                <span className={`font-semibold ${repo.repoData.description && repo.repoData.topics.length > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {repo.repoData.description && repo.repoData.topics.length > 0 ? 'Good' : 'Needs Improvement'}
+                <span className={`font-semibold ${docScore >= 7 ? 'text-green-400' : docScore >= 4 ? 'text-yellow-400' : 'text-red-400'}`}>
+                  {docLabel}
                 </span>
               </div>
             </div>
@@ -746,6 +776,33 @@ const RepoDetail = ({ repo, onBack, prevPage }) => {
     );
   };
 
+  const repoUrl = (repo.repoData.link || '').replace(/\/$/, '');
+  const absolutizeUrl = (url, key) => {
+    if (!url || /^(https?:|mailto:|#|data:|\/\/)/i.test(url)) return url;
+    const clean = url.replace(/^\.?\//, '');
+    return `${repoUrl}/${key === 'src' ? 'raw' : 'blob'}/HEAD/${clean}`;
+  };
+
+  const renderReadme = () => (
+    <div className="glass-morphism rounded-xl p-6">
+      <h3 className="text-lg font-semibold text-white mb-4">README</h3>
+      {readme ? (
+        <div className="readme-body max-h-[680px] overflow-auto pr-2">
+          <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={absolutizeUrl}>
+            {readme}
+          </ReactMarkdown>
+        </div>
+      ) : (
+        <div className="text-center py-16 text-gray-500">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
+            <BookText size={20} />
+          </div>
+          <p className="text-sm">No README found for this repository.</p>
+        </div>
+      )}
+    </div>
+  );
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview': return renderOverview();
@@ -755,6 +812,7 @@ const RepoDetail = ({ repo, onBack, prevPage }) => {
       case 'pulse': return renderPulse();
       case 'analytics': return renderAnalytics();
       case 'files': return <RadialFileMap data={repo.filesData} />;
+      case 'readme': return renderReadme();
       default: return renderOverview();
     }
   };

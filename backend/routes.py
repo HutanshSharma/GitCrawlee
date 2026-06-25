@@ -8,13 +8,15 @@ from crawlers.issue import extract as issue_scrap
 from crawlers.commit import extract as commit_scrap
 from crawlers.pulse import extract as pulse_scrap
 from crawlers.get_all_repos import extract as get_repos
-from backend.file_structure import get_repo_structure
+from crawlers.readme import fetch_readme
+from backend.file_structure import get_default_branch, get_repo_structure
 from backend.schemas import (
     CommitsResponse,
     IssuesResponse,
     ProfileResponse,
     PullsResponse,
     PulseResponse,
+    ReadmeResponse,
     RepoInfoResponse,
     RepoListItem,
     RepoStructureResponse,
@@ -61,6 +63,11 @@ def pulse(nickname: str, repository: str) -> PulseResponse:
     link = f"https://github.com/{nickname}/{repository}/pulse"
     data = scraper(link,pulse_scrap)
     return data
+
+@router.get('/readme/{nickname}/{repository}', response_model=ReadmeResponse)
+def readme(nickname: str, repository: str) -> ReadmeResponse:
+    branch = get_default_branch(nickname, repository)
+    return fetch_readme(nickname, repository, branch)
 
 @router.get('/home/{nickname}', response_model=list[RepoListItem])
 def home(nickname: str) -> list[RepoListItem]:

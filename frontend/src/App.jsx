@@ -49,6 +49,7 @@ function App() {
         `http://localhost:5000/pulse/${nickname}/${repoName}`,
         `http://localhost:5000/commits/${nickname}/${repoName}`,
         `http://localhost:5000/repo-structure/${nickname}/${repoName}`,
+        `http://localhost:5000/readme/${nickname}/${repoName}`,
       ];
 
       try {
@@ -59,7 +60,8 @@ function App() {
                       "issues":{...results[2]},
                       "pulse":{...results[3]},
                       "commits":{...results[4]},
-                      "filesData":{...results[5]}
+                      "filesData":{...results[5]},
+                      "readme":results[6]
                     }
         setSelectedRepo(data)
         navigate(`/repo/${repoName}`,{replace:true})

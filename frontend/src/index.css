@@ -253,3 +253,58 @@ h1, h2, h3, h4 {
   pointer-events: none;
   overflow: hidden;
 }
+
+/* ---------- Rendered README (GitHub-like) ---------- */
+.readme-body {
+  color: #c9d1d9;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  word-wrap: break-word;
+}
+.readme-body > *:first-child { margin-top: 0; }
+.readme-body h1, .readme-body h2, .readme-body h3,
+.readme-body h4, .readme-body h5, .readme-body h6 {
+  color: #fff;
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 1.5em 0 0.6em;
+}
+.readme-body h1 { font-size: 1.75em; padding-bottom: 0.3em; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+.readme-body h2 { font-size: 1.4em; padding-bottom: 0.3em; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+.readme-body h3 { font-size: 1.2em; }
+.readme-body h4 { font-size: 1em; }
+.readme-body p, .readme-body blockquote, .readme-body ul, .readme-body ol, .readme-body table, .readme-body pre {
+  margin: 0 0 1em;
+}
+.readme-body a { color: #6ea8fe; text-decoration: none; }
+.readme-body a:hover { text-decoration: underline; }
+.readme-body strong { color: #fff; font-weight: 600; }
+.readme-body ul, .readme-body ol { padding-left: 1.6em; }
+.readme-body li { margin: 0.25em 0; }
+.readme-body li > ul, .readme-body li > ol { margin: 0.25em 0; }
+.readme-body code {
+  background: rgba(110, 118, 129, 0.25);
+  padding: 0.2em 0.4em;
+  border-radius: 6px;
+  font-size: 0.85em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.readme-body pre {
+  background: #0d1117;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 1em;
+  overflow: auto;
+}
+.readme-body pre code { background: transparent; padding: 0; font-size: 0.85em; }
+.readme-body blockquote {
+  padding: 0 1em;
+  color: #8b949e;
+  border-left: 3px solid rgba(255, 255, 255, 0.15);
+}
+.readme-body img { max-width: 100%; height: auto; }
+.readme-body hr { border: 0; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 1.5em 0; }
+.readme-body table { border-collapse: collapse; display: block; width: max-content; max-width: 100%; overflow: auto; }
+.readme-body th, .readme-body td { border: 1px solid rgba(255, 255, 255, 0.12); padding: 0.5em 0.9em; }
+.readme-body th { background: rgba(255, 255, 255, 0.04); }
+.readme-body input[type="checkbox"] { margin-right: 0.5em; }
